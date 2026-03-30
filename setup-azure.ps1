@@ -96,17 +96,17 @@ $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
 $manifest.baseUrl = $baseUrl
 $manifest | ConvertTo-Json -Depth 10 | Set-Content $manifestPath -Encoding UTF8
 
-Write-Host "`n✅ Done!" -ForegroundColor Green
-Write-Host "─────────────────────────────────────────────────────────────"
+Write-Host ""
+Write-Host "Done!" -ForegroundColor Green
+Write-Host "==========================================================="
 Write-Host "Base URL: $baseUrl" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Next steps:" -ForegroundColor White
-Write-Host "  1. Go to portal.azure.com → Create 'Static Web App' (Free tier)"
+Write-Host "Next steps:"
+Write-Host "  1. Go to portal.azure.com and create a Static Web App (Free)"
 Write-Host "  2. Link it to: https://github.com/ezrankhata/ZUSU-DC"
-Write-Host "  3. Azure will add the deploy token to your GitHub repo automatically"
-Write-Host "  4. Commit and push this repo — GitHub Actions will deploy the site"
-Write-Host ""
-Write-Host "  git add data/manifest.json"
-Write-Host "  git commit -m 'Configure Azure Blob Storage URL'"
-Write-Host "  git push"
-Write-Host "─────────────────────────────────────────────────────────────`n"
+Write-Host "  3. Azure adds the deploy token to GitHub automatically"
+Write-Host "  4. Then run:"
+Write-Host "       git add data/manifest.json"
+Write-Host "       git commit -m 'Add storage URL'"
+Write-Host "       git push"
+Write-Host "==========================================================="
