@@ -88,15 +88,22 @@
     showToast('Done! All photos downloaded.');
   });
 
-  function triggerDownload(url, name) {
-    return new Promise(resolve => {
+  async function triggerDownload(url, name) {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = name;
+      a.href = blobUrl;
+      a.download = name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(resolve, 200);
-    });
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e) {
+      // Fallback: open in new tab if fetch fails
+      window.open(url, '_blank');
+    }
   }
 
   // Toast
