@@ -1,28 +1,65 @@
 (async () => {
   const manifest = await fetch('data/manifest.json').then(r => r.json());
   const baseUrl = manifest.baseUrl;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  // Flatten all albums into one array
+  // Flatten all photos
   const allPhotos = [];
   manifest.albums.forEach(album => {
     album.images.forEach(name => {
-      allPhotos.push({ name, url: `${baseUrl}/${album.folder}/${name}` });
+      allPhotos.push({ name, url: baseUrl + '/' + album.folder + '/' + name });
     });
   });
 
-  let visible = [...allPhotos];
+  // Split into 3 equal batches
+  const batchSize = Math.ceil(allPhotos.length / 3);
+  const batches = [
+    allPhotos.slice(0, batchSize),
+    allPhotos.slice(batchSize, batchSize * 2),
+    allPhotos.slice(batchSize * 2)
+  ];
 
-  // Stats
-  document.getElementById('photo-count').textContent = allPhotos.length + ' photos';
+  let activeBatch = 0;
+  let visible = batches[0].slice();
 
-  // Build grid
+  document.getElementById('photo-count').textContent = allPhotos.length + ' photos total';
+
+  // Build batch buttons
+  const batchBar = document.getElementById('batch-bar');
+  batches.forEach(function(batch, i) {
+    const btn = document.createElement('button');
+    btn.className = 'batch-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = 'Batch ' + (i + 1) + '  (' + batch.length + ' photos)';
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.batch-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      activeBatch = i;
+      visible = batches[i].slice();
+      document.getElementById('search').value = '';
+      buildGrid(visible);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    batchBar.appendChild(btn);
+  });
+
+  // Download batch
+  document.getElementById('btn-download-all').addEventListener('click', async function() {
+    const photos = batches[activeBatch];
+    for (let i = 0; i < photos.length; i++) {
+      showToast('Saving ' + (i + 1) + ' / ' + photos.length + '...');
+      await triggerDownload(photos[i].url, photos[i].name);
+      await new Promise(function(r) { setTimeout(r, 300); });
+    }
+    showToast('Batch ' + (activeBatch + 1) + ' done!');
+  });
+
+  // Grid
   const grid = document.getElementById('photo-grid');
 
   function buildGrid(photos) {
     grid.innerHTML = '';
     document.getElementById('no-results').style.display = photos.length ? 'none' : 'block';
-
-    photos.forEach((photo, idx) => {
+    photos.forEach(function(photo, idx) {
       const item = document.createElement('div');
       item.className = 'photo-item';
       item.dataset.idx = idx;
@@ -35,8 +72,8 @@
       overlay.className = 'overlay';
       const dlBtn = document.createElement('button');
       dlBtn.className = 'overlay-dl';
-      dlBtn.textContent = '\u2659 Download';
-      dlBtn.addEventListener('click', e => {
+      dlBtn.textContent = isIOS ? 'Save to Photos' : 'Download';
+      dlBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         triggerDownload(photo.url, photo.name);
       });
@@ -44,57 +81,52 @@
 
       item.appendChild(img);
       item.appendChild(overlay);
-      item.addEventListener('click', () => openLightbox(idx));
+      item.addEventListener('click', function() { openLightbox(idx); });
       grid.appendChild(item);
-
-      // Use IntersectionObserver for lazy load
       observer.observe(item);
     });
   }
 
-  // IntersectionObserver — loads image when tile enters viewport
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
       if (!entry.isIntersecting) return;
       const item = entry.target;
-      const idx = parseInt(item.dataset.idx);
-      const photo = visible[idx];
+      const photo = visible[parseInt(item.dataset.idx)];
       const img = item.querySelector('img');
       if (img.src) return;
-      img.onload = () => item.classList.add('loaded');
-      img.onerror = () => { item.classList.add('loaded'); img.style.display = 'none'; };
+      img.onload = function() { item.classList.add('loaded'); };
+      img.onerror = function() { item.classList.add('loaded'); img.style.display = 'none'; };
       img.src = photo.url;
       observer.unobserve(item);
     });
-  }, { rootMargin: '200px' });
+  }, { rootMargin: '300px' });
 
-  buildGrid(allPhotos);
+  buildGrid(visible);
 
-  // Search
-  document.getElementById('search').addEventListener('input', e => {
+  // Search within active batch
+  document.getElementById('search').addEventListener('input', function(e) {
     const q = e.target.value.trim().toLowerCase();
-    visible = q ? allPhotos.filter(p => p.name.toLowerCase().includes(q)) : [...allPhotos];
+    visible = q ? batches[activeBatch].filter(function(p) { return p.name.toLowerCase().indexOf(q) !== -1; }) : batches[activeBatch].slice();
     buildGrid(visible);
   });
 
-  // Download all
-  document.getElementById('btn-download-all').addEventListener('click', async () => {
-    showToast('Starting download of ' + allPhotos.length + ' photos...');
-    for (let i = 0; i < allPhotos.length; i++) {
-      showToast('Downloading ' + (i + 1) + ' / ' + allPhotos.length + '...');
-      await triggerDownload(allPhotos[i].url, allPhotos[i].name);
-      await new Promise(r => setTimeout(r, 250));
-    }
-    showToast('Done! All photos downloaded.');
-  });
-
+  // Download — iOS saves to Photos via Web Share API
   async function triggerDownload(url, name) {
-    showToast('Saving photo...');
+    showToast('Saving...');
     try {
-      // Try fetch-as-blob first (works when CORS is enabled)
       const res = await fetch(url, { mode: 'cors' });
-      if (!res.ok) throw new Error('fetch failed');
+      if (!res.ok) throw new Error('failed');
       const blob = await res.blob();
+
+      if (isIOS && navigator.canShare) {
+        const file = new File([blob], name, { type: 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+          showToast('Saved to Photos!');
+          return;
+        }
+      }
+
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
@@ -102,28 +134,14 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 2000);
       showToast('Photo saved!');
     } catch (e) {
-      // Fallback: load into canvas and download from there
-      try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url + '?t=' + Date.now(); });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        canvas.toBlob(blob => {
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl; a.download = name;
-          document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
-          showToast('Photo saved!');
-        }, 'image/jpeg', 0.95);
-      } catch (e2) {
-        showToast('Right-click the photo and choose "Save image as"');
+      if (isIOS) {
+        window.open(url, '_blank');
+        showToast('Long press image and tap Save to Photos');
+      } else {
+        showToast('Right-click the photo and choose Save image as');
       }
     }
   }
@@ -135,7 +153,7 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
   }
 
   // Lightbox
@@ -143,7 +161,6 @@
   const lbImg = document.getElementById('lb-img');
   const lbName = document.getElementById('lb-name');
   const lbCounter = document.getElementById('lb-counter');
-  const lbDl = document.getElementById('lb-download');
   const lbSpinner = document.getElementById('lb-spinner');
   let currentIdx = 0;
 
@@ -160,37 +177,41 @@
     lbSpinner.classList.add('show');
     lbName.textContent = photo.name;
     lbCounter.textContent = (currentIdx + 1) + ' / ' + visible.length;
-    lbDl.href = photo.url;
-    lbDl.download = photo.name;
     const tmp = new Image();
-    tmp.onload = tmp.onerror = () => {
+    tmp.onload = tmp.onerror = function() {
       lbImg.src = photo.url;
       lbImg.style.opacity = '1';
       lbSpinner.classList.remove('show');
     };
     tmp.src = photo.url;
+    document.getElementById('lb-download').onclick = function(e) {
+      e.preventDefault();
+      triggerDownload(photo.url, photo.name);
+    };
   }
 
   document.getElementById('lb-close').addEventListener('click', closeLb);
   document.getElementById('lb-backdrop').addEventListener('click', closeLb);
-  document.getElementById('lb-prev').addEventListener('click', () => { currentIdx = (currentIdx - 1 + visible.length) % visible.length; showLbPhoto(); });
-  document.getElementById('lb-next').addEventListener('click', () => { currentIdx = (currentIdx + 1) % visible.length; showLbPhoto(); });
+  document.getElementById('lb-prev').addEventListener('click', function() { currentIdx = (currentIdx - 1 + visible.length) % visible.length; showLbPhoto(); });
+  document.getElementById('lb-next').addEventListener('click', function() { currentIdx = (currentIdx + 1) % visible.length; showLbPhoto(); });
 
   function closeLb() { lb.classList.remove('open'); document.body.style.overflow = ''; }
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', function(e) {
     if (!lb.classList.contains('open')) return;
     if (e.key === 'ArrowLeft') { currentIdx = (currentIdx - 1 + visible.length) % visible.length; showLbPhoto(); }
     if (e.key === 'ArrowRight') { currentIdx = (currentIdx + 1) % visible.length; showLbPhoto(); }
     if (e.key === 'Escape') closeLb();
   });
 
-  // Touch swipe
   let tx = 0;
-  lb.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  lb.addEventListener('touchend', e => {
+  lb.addEventListener('touchstart', function(e) { tx = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend', function(e) {
     const dx = e.changedTouches[0].clientX - tx;
-    if (Math.abs(dx) > 50) { dx < 0 ? (currentIdx = (currentIdx + 1) % visible.length) : (currentIdx = (currentIdx - 1 + visible.length) % visible.length); showLbPhoto(); }
+    if (Math.abs(dx) > 50) {
+      currentIdx = dx < 0 ? (currentIdx + 1) % visible.length : (currentIdx - 1 + visible.length) % visible.length;
+      showLbPhoto();
+    }
   });
 
 })();
