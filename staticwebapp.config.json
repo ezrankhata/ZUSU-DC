@@ -1,0 +1,16 @@
+{
+  "globalHeaders": {
+    "Cache-Control": "public, max-age=3600",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY"
+  },
+  "mimeTypes": {
+    ".jpg": "image/jpeg",
+    ".JPG": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".json": "application/json"
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  }
+}

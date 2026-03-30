@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ZUSU Image Download Centre – Browse and download official ZCAS University Student Union photos." />
+  <title>ZUSU Image Download Centre</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="header-inner">
+      <img class="header-logo" src="assets/logo.jpg" alt="ZUSU Logo" />
+      <div class="header-text">
+        <h1>ZUSU Image Download Centre</h1>
+        <p>ZCAS University Student Union &nbsp;·&nbsp; Aspire, Acquire, Prosper</p>
+      </div>
+    </div>
+    <div class="header-gold-bar"></div>
+  </header>
+
+  <!-- ── STATS BAR ── -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat">
+        <strong id="stat-total">—</strong> Photos
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <strong id="stat-albums">—</strong> Albums
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">Free to download</div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <main>
+
+    <!-- Config notice (shown when baseUrl is still PLACEHOLDER) -->
+    <div class="config-notice" id="config-notice">
+      <div class="config-notice-icon">⚙️</div>
+      <p>
+        <strong>Setup required:</strong> Images are not yet connected. Run <code>setup-azure.ps1</code>
+        to create your Azure Blob Storage and upload the images, then update
+        <code>data/manifest.json</code> with your storage URL and push to GitHub.
+      </p>
+    </div>
+
+    <!-- Album tabs -->
+    <div class="album-tabs" id="album-tabs"></div>
+
+    <!-- Album panels -->
+    <div id="album-panels"></div>
+
+  </main>
+
+  <!-- ── LIGHTBOX ── -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <button class="lb-close" onclick="closeLightbox()" title="Close (Esc)">✕</button>
+    <div class="lightbox-img-wrap">
+      <img class="lightbox-img" id="lb-img" alt="Full size photo" />
+    </div>
+    <div class="lightbox-toolbar">
+      <div class="lightbox-nav">
+        <button class="lb-nav-btn" onclick="lbPrev()" title="Previous (←)">&#8592;</button>
+        <span class="lightbox-counter" id="lb-counter"></span>
+        <button class="lb-nav-btn" onclick="lbNext()" title="Next (→)">&#8594;</button>
+      </div>
+      <span class="lightbox-name" id="lb-name"></span>
+      <a class="btn btn-primary" id="lb-dl" download>⬇ Download</a>
+    </div>
+  </div>
+
+  <!-- ── DOWNLOAD TOAST ── -->
+  <div class="dl-toast" id="dl-toast">
+    <div class="dl-spinner"></div>
+    <span class="dl-text">Preparing download...</span>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <p>&copy; 2025 <span>ZCAS University Student Union</span> &nbsp;·&nbsp; All photos remain property of ZUSU</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
