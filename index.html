@@ -3,87 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="ZUSU Image Download Centre – Browse and download official ZCAS University Student Union photos." />
   <title>ZUSU Image Download Centre</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
 </head>
 <body>
 
-  <!-- ── HEADER ── -->
   <header>
     <div class="header-inner">
       <img class="header-logo" src="assets/logo.jpg" alt="ZUSU Logo" />
       <div class="header-text">
         <h1>ZUSU Image Download Centre</h1>
-        <p>ZCAS University Student Union &nbsp;·&nbsp; Aspire, Acquire, Prosper</p>
+        <p>ZCAS University Student Union &nbsp;&middot;&nbsp; Aspire, Acquire, Prosper</p>
+      </div>
+      <div class="header-right">
+        <span id="photo-count" class="photo-count"></span>
+        <button class="btn-dl-all" id="btn-download-all">&#8659; Download All</button>
       </div>
     </div>
-    <div class="header-gold-bar"></div>
+    <div class="gold-bar"></div>
   </header>
 
-  <!-- ── STATS BAR ── -->
-  <div class="stats-bar">
-    <div class="stats-inner">
-      <div class="stat">
-        <strong id="stat-total">—</strong> Photos
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat">
-        <strong id="stat-albums">—</strong> Albums
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat">Free to download</div>
-    </div>
+  <div class="toolbar">
+    <input type="text" id="search" class="search-input" placeholder="Search photos..." />
   </div>
 
-  <!-- ── MAIN ── -->
   <main>
-
-    <!-- Config notice (shown when baseUrl is still PLACEHOLDER) -->
-    <div class="config-notice" id="config-notice">
-      <div class="config-notice-icon">⚙️</div>
-      <p>
-        <strong>Setup required:</strong> Images are not yet connected. Run <code>setup-azure.ps1</code>
-        to create your Azure Blob Storage and upload the images, then update
-        <code>data/manifest.json</code> with your storage URL and push to GitHub.
-      </p>
-    </div>
-
-    <!-- Album tabs -->
-    <div class="album-tabs" id="album-tabs"></div>
-
-    <!-- Album panels -->
-    <div id="album-panels"></div>
-
+    <div class="photo-grid" id="photo-grid"></div>
+    <div id="no-results" class="no-results" style="display:none">No photos match your search.</div>
   </main>
 
-  <!-- ── LIGHTBOX ── -->
-  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
-    <button class="lb-close" onclick="closeLightbox()" title="Close (Esc)">✕</button>
-    <div class="lightbox-img-wrap">
-      <img class="lightbox-img" id="lb-img" alt="Full size photo" />
-    </div>
-    <div class="lightbox-toolbar">
-      <div class="lightbox-nav">
-        <button class="lb-nav-btn" onclick="lbPrev()" title="Previous (←)">&#8592;</button>
-        <span class="lightbox-counter" id="lb-counter"></span>
-        <button class="lb-nav-btn" onclick="lbNext()" title="Next (→)">&#8594;</button>
+  <div class="lightbox" id="lightbox">
+    <div class="lb-backdrop" id="lb-backdrop"></div>
+    <button class="lb-close" id="lb-close">&#10005;</button>
+    <button class="lb-arrow lb-prev" id="lb-prev">&#10094;</button>
+    <div class="lb-stage">
+      <div class="lb-img-wrap">
+        <div class="lb-spinner" id="lb-spinner"></div>
+        <img id="lb-img" src="" alt="" />
       </div>
-      <span class="lightbox-name" id="lb-name"></span>
-      <a class="btn btn-primary" id="lb-dl" download>⬇ Download</a>
+      <div class="lb-bar">
+        <div class="lb-meta">
+          <span class="lb-name" id="lb-name"></span>
+          <span class="lb-counter" id="lb-counter"></span>
+        </div>
+        <a class="lb-dl-btn" id="lb-download" href="#" download>&#8659; Download Photo</a>
+      </div>
     </div>
+    <button class="lb-arrow lb-next" id="lb-next">&#10095;</button>
   </div>
 
-  <!-- ── DOWNLOAD TOAST ── -->
-  <div class="dl-toast" id="dl-toast">
-    <div class="dl-spinner"></div>
-    <span class="dl-text">Preparing download...</span>
-  </div>
+  <div class="toast" id="toast"></div>
 
-  <!-- ── FOOTER ── -->
   <footer>
-    <p>&copy; 2025 <span>ZCAS University Student Union</span> &nbsp;·&nbsp; All photos remain property of ZUSU</p>
+    <p>&copy; 2025 ZCAS University Student Union &nbsp;&middot;&nbsp; All photos remain the property of ZUSU</p>
   </footer>
 
   <script src="js/app.js"></script>
