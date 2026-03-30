@@ -16,22 +16,20 @@
         <h1>ZUSU Image Download Centre</h1>
         <p>ZCAS University Student Union &nbsp;&middot;&nbsp; Aspire, Acquire, Prosper</p>
       </div>
-      <div class="header-right">
-        <span id="photo-count" class="photo-count"></span>
-        <button class="btn-dl-all" id="btn-download-all">&#8659; Download All</button>
-      </div>
+      <span id="photo-count" class="photo-count"></span>
     </div>
     <div class="gold-bar"></div>
   </header>
 
-  <div class="toolbar">
-    <div class="batch-bar" id="batch-bar"></div>
-    <input type="text" id="search" class="search-input" placeholder="Search photos in this batch..." />
-  </div>
+  <nav class="batch-nav">
+    <button class="batch-btn active" data-batch="0">Batch 1</button>
+    <button class="batch-btn" data-batch="1">Batch 2</button>
+    <button class="batch-btn" data-batch="2">Batch 3</button>
+  </nav>
 
   <main>
     <div class="photo-grid" id="photo-grid"></div>
-    <div id="no-results" class="no-results" style="display:none">No photos match your search.</div>
+    <div id="no-results" class="no-results" style="display:none">No photos found.</div>
   </main>
 
   <div class="lightbox" id="lightbox">
@@ -48,7 +46,7 @@
           <span class="lb-name" id="lb-name"></span>
           <span class="lb-counter" id="lb-counter"></span>
         </div>
-        <a class="lb-dl-btn" id="lb-download" href="#" download>&#8659; Download Photo</a>
+        <button class="lb-dl-btn" id="lb-download">&#8659; Save Photo</button>
       </div>
     </div>
     <button class="lb-arrow lb-next" id="lb-next">&#10095;</button>

@@ -22,36 +22,21 @@
   let activeBatch = 0;
   let visible = batches[0].slice();
 
-  document.getElementById('photo-count').textContent = allPhotos.length + ' photos total';
-
-  // Build batch buttons
-  const batchBar = document.getElementById('batch-bar');
-  batches.forEach(function(batch, i) {
-    const btn = document.createElement('button');
-    btn.className = 'batch-btn' + (i === 0 ? ' active' : '');
-    btn.textContent = 'Batch ' + (i + 1) + '  (' + batch.length + ' photos)';
+  // Update batch button labels with counts
+  document.querySelectorAll('.batch-btn').forEach(function(btn) {
+    const i = parseInt(btn.dataset.batch);
+    btn.textContent = 'Batch ' + (i + 1) + ' (' + batches[i].length + ' photos)';
     btn.addEventListener('click', function() {
       document.querySelectorAll('.batch-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
       activeBatch = i;
       visible = batches[i].slice();
-      document.getElementById('search').value = '';
       buildGrid(visible);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    batchBar.appendChild(btn);
   });
 
-  // Download batch
-  document.getElementById('btn-download-all').addEventListener('click', async function() {
-    const photos = batches[activeBatch];
-    for (let i = 0; i < photos.length; i++) {
-      showToast('Saving ' + (i + 1) + ' / ' + photos.length + '...');
-      await triggerDownload(photos[i].url, photos[i].name);
-      await new Promise(function(r) { setTimeout(r, 300); });
-    }
-    showToast('Batch ' + (activeBatch + 1) + ' done!');
-  });
+  document.getElementById('photo-count').textContent = allPhotos.length + ' photos';
 
   // Grid
   const grid = document.getElementById('photo-grid');
@@ -103,12 +88,6 @@
 
   buildGrid(visible);
 
-  // Search within active batch
-  document.getElementById('search').addEventListener('input', function(e) {
-    const q = e.target.value.trim().toLowerCase();
-    visible = q ? batches[activeBatch].filter(function(p) { return p.name.toLowerCase().indexOf(q) !== -1; }) : batches[activeBatch].slice();
-    buildGrid(visible);
-  });
 
   // Download — iOS saves to Photos via Web Share API
   async function triggerDownload(url, name) {

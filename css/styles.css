@@ -22,13 +22,11 @@ header { background: linear-gradient(135deg, var(--navy-dark), var(--navy) 60%, 
 .btn-dl-all { background: var(--gold); color: var(--navy-dark); border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: background 0.15s, transform 0.15s; white-space: nowrap; }
 .btn-dl-all:hover { background: var(--gold-light); transform: translateY(-1px); }
 .gold-bar { height: 4px; background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold)); }
-.toolbar { background: var(--white); border-bottom: 1px solid #ddd; padding: 12px 20px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
-.batch-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.batch-btn { padding: 9px 22px; border-radius: 50px; border: 2px solid var(--navy); background: transparent; color: var(--navy); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
-.batch-btn:hover { background: var(--navy); color: var(--white); }
-.batch-btn.active { background: var(--navy); color: var(--white); box-shadow: 0 3px 12px rgba(43,45,126,0.3); }
-.search-input { width: 100%; max-width: 480px; padding: 9px 16px; border: 2px solid #ddd; border-radius: 50px; font-size: 0.9rem; outline: none; transition: border-color 0.15s; }
-.search-input:focus { border-color: var(--navy); }
+.batch-nav { background: var(--white); border-bottom: 3px solid var(--gold); display: flex; justify-content: center; gap: 0; }
+.batch-btn { flex: 1; max-width: 220px; padding: 16px 10px; border: none; border-bottom: 4px solid transparent; background: transparent; color: var(--navy); font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+.batch-btn:hover { background: #f0eef8; color: var(--navy-dark); }
+.batch-btn.active { color: var(--navy-dark); border-bottom: 4px solid var(--gold); background: #f9f7ff; }
+@media (max-width: 480px) { .batch-btn { font-size: 0.82rem; padding: 14px 6px; } }
 main { max-width: 1400px; margin: 0 auto; padding: 16px; }
 .photo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .photo-item { position: relative; aspect-ratio: 1; background: #d8d4ee; overflow: hidden; cursor: pointer; border-radius: 4px; }
