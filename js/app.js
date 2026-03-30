@@ -89,8 +89,11 @@
   });
 
   async function triggerDownload(url, name) {
+    showToast('Saving photo...');
     try {
-      const res = await fetch(url);
+      // Try fetch-as-blob first (works when CORS is enabled)
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error('fetch failed');
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -99,10 +102,29 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      showToast('Photo saved!');
     } catch (e) {
-      // Fallback: open in new tab if fetch fails
-      window.open(url, '_blank');
+      // Fallback: load into canvas and download from there
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url + '?t=' + Date.now(); });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob(blob => {
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl; a.download = name;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+          showToast('Photo saved!');
+        }, 'image/jpeg', 0.95);
+      } catch (e2) {
+        showToast('Right-click the photo and choose "Save image as"');
+      }
     }
   }
 
